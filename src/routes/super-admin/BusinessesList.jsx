@@ -74,6 +74,7 @@ export default function BusinessesList() {
                 <th className="px-6 py-3 font-medium">Packages</th>
                 <th className="px-6 py-3 font-medium">Last updated</th>
                 <th className="px-6 py-3 font-medium">Status</th>
+                <th className="px-6 py-3 font-medium"></th>
               </tr>
             </thead>
             <tbody>
@@ -98,12 +99,17 @@ export default function BusinessesList() {
                         {biz.is_active ? 'Active' : 'Deactivated'}
                       </button>
                     </td>
+                    <td className="px-6 py-3">
+                      <Link to={`/super-admin/edit/${biz.id}`} className="text-sm font-medium text-brand-light hover:underline">
+                        Edit
+                      </Link>
+                    </td>
                   </tr>
                 )
               })}
               {businesses.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-paper/40">
+                  <td colSpan={7} className="px-6 py-8 text-center text-paper/40">
                     No businesses yet — add the first one.
                   </td>
                 </tr>

@@ -3,9 +3,10 @@ import { useAuth } from '../../hooks/useAuth.js'
 
 /**
  * Gates a route tree behind Supabase Auth + an app-level role check.
- * role="business_admin" also accepts super_admin (super admins can view,
- * per the brief, but note the Super Admin panel intentionally does not
- * expose per-business content editing — that stays business_admin's job).
+ * The two roles are kept strictly separate: super_admin cannot access
+ * `/admin` (business_admin routes), and business_admin cannot access
+ * `/super-admin` — per the platform's design, a super_admin manages
+ * tenants only and never edits an individual business's own content.
  */
 export default function ProtectedRoute({ role, children }) {
   const { session, appUser, loading, isSuperAdmin } = useAuth()
@@ -25,8 +26,7 @@ export default function ProtectedRoute({ role, children }) {
     return <Navigate to={loginPath} state={{ from: location }} replace />
   }
 
-  const authorized =
-    role === 'super_admin' ? isSuperAdmin : appUser?.role === role || isSuperAdmin
+  const authorized = role === 'super_admin' ? isSuperAdmin : appUser?.role === role
 
   if (!authorized) {
     return <Navigate to={loginPath} replace />

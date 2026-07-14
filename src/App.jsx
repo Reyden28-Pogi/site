@@ -26,6 +26,7 @@ import ProtectedRoute from './components/admin/ProtectedRoute.jsx'
 import SuperAdminLogin from './routes/super-admin/SuperAdminLogin.jsx'
 import SuperAdminLayout from './routes/super-admin/SuperAdminLayout.jsx'
 import BusinessesList from './routes/super-admin/BusinessesList.jsx'
+import EditBusiness from './routes/super-admin/EditBusiness.jsx'
 import CreateBusiness from './routes/super-admin/CreateBusiness.jsx'
 
 export default function App() {
@@ -83,6 +84,7 @@ export default function App() {
         }
       >
         <Route index element={<BusinessesList />} />
+        <Route path="edit/:businessId" element={<EditBusiness />} />
         <Route path="new" element={<CreateBusiness />} />
       </Route>
     </Routes>
