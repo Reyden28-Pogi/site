@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand: #b5502f;
+  --brand-light: #d97757;
+  --brand-dark: #8a3c22;
+  --secondary: #6b8f71;
+  --secondary-light: #8fae94;
+  --secondary-dark: #4d6b52;
+  --tertiary: #4a5c7a;
+  --tertiary-light: #6c7fa0;
+  --tertiary-dark: #354362;
+  --font-display: 'Fraunces';
+  --font-body: 'Inter';
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-paper text-ink font-body antialiased;
+}
+
+h1, h2, h3, h4 {
+  @apply font-display;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.input {
+  @apply w-full rounded-lg border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brand;
+}
+
+/* signature: brush-style underline used under section headings */
+.brush-underline {
+  position: relative;
+  display: inline-block;
+}
+.brush-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -0.15em;
+  height: 0.14em;
+  width: 100%;
+  background: var(--brand);
+  transform-origin: left;
+  border-radius: 2px;
+}
