@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     const { data, error } = await admin
       .from('businesses')
       .select(
-        'id, name, slug, contact_email, contact_phone, address, theme_color, secondary_color, tertiary_color, heading_font, body_font, about_text, logo_url'
+        'id, name, slug, contact_email, contact_phone, address, theme_color, secondary_color, tertiary_color, heading_font, body_font, about_text, logo_url, dark_mode'
       )
       .eq('slug', slug)
       .eq('is_active', true)

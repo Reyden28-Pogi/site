@@ -94,6 +94,7 @@ them automatically — you don't run these one at a time):
   set a logo, shown in their site's navbar
 - `0009_brand_customization.sql` — adds `secondary_color`, `tertiary_color`,
   `heading_font`, `body_font` for fuller brand customization — see section 8
+- `0010_dark_mode.sql` — adds a `dark_mode` boolean toggle — see section 8
 
 See section 11 for the reasoning behind the hardening/rate-limiting ones.
 
@@ -300,11 +301,11 @@ where you manage all tenants.
 src/
   lib/                    Supabase client, image upload helper, business context
   hooks/useAuth.js        Supabase Auth + role/business lookup
-  components/public/      Navbar, Footer, Hero, PackageCard, GalleryGrid, TestimonialCarousel, StatsCounter, TurnstileWidget
+  components/public/      Navbar, Footer, Hero, PackageCard, GalleryGrid, TestimonialCarousel, ClientReviews, StatsCounter, TurnstileWidget, Lightbox
   components/admin/       ProtectedRoute, Sidebar, ImageUploader
   routes/public/          Home, About, Packages, Gallery, Blog, BlogPost, Contact
   routes/admin/           AdminLogin, AcceptInvite, AdminLayout, Dashboard, PackagesAdmin, GalleryAdmin, BlogAdmin, TestimonialsAdmin, LeadsAdmin, ReviewsAdmin, SettingsAdmin
-  routes/super-admin/     SuperAdminLogin, SuperAdminLayout, BusinessesList, CreateBusiness
+  routes/super-admin/     SuperAdminLogin, SuperAdminLayout, BusinessesList, EditBusiness, CreateBusiness
 supabase/
   migrations/0001_init.sql             Schema + RLS
   migrations/0002_hardening.sql        Locks businesses table down, tightens lead inserts
@@ -315,6 +316,7 @@ supabase/
   migrations/0007_reviews.sql          Client-submitted reviews table (no-delete-for-business_admin)
   migrations/0008_business_logo.sql    Editable logo_url column
   migrations/0009_brand_customization.sql  secondary/tertiary colors + font pairing
+  migrations/0010_dark_mode.sql         Per-business dark_mode boolean
   functions/_shared/rateLimit.ts       Rate-limit + client-IP helper shared across functions below
   functions/get-business                Public, single-row business lookup by slug (service role, rate-limited)
   functions/upload-image               Validated upload into the caller's own Storage folder (type/size checked)
@@ -358,6 +360,39 @@ tint than as a large solid fill — a color that reads fine as a subtle tint
 can look bad as a big button or background. Secondary/tertiary are kept to
 low-exposure roles for that reason, while primary (which every curated
 trio designs around as the "main" color) gets the high-exposure spots.
+
+**Important technical fix, worth knowing about:** opacity-modified custom
+colors (`bg-secondary/5`, `bg-brand/10`, etc.) were silently broken for a
+while — Tailwind can only apply an alpha channel to a color defined as
+`rgb(var(--x) / <alpha-value>)`, not to a bare `var(--x)` reference. The
+CSS variables were originally plain hex strings (`--brand: #b5502f`),
+which meant every one of those opacity-modified classes generated no CSS
+at all — the "subtle tint" sections and hover accents described above just
+silently weren't rendering. Fixed by storing colors as space-separated RGB
+channels (`--brand: 181 80 47`) in `index.css` and updating
+`tailwind.config.js`'s color definitions accordingly — same fix pattern
+covers the new surface/dark-mode tokens below. If you add more custom
+colors in the future, follow this same channel format or opacity
+modifiers on them will have the identical silent-failure problem.
+
+**Dark mode:** a business can toggle a dark background with light text
+from `/admin/settings`, on top of whatever colors/fonts they've already
+picked. Implemented as a `.dark` class scoped to the public site's own
+root wrapper (`PublicLayout.jsx`) — deliberately **not** applied to
+`<html>` globally, for two reasons: it keeps admin panels completely
+unaffected without needing any extra guard logic, and it avoids a
+SPA-navigation cleanup bug a global class would have (React Router
+doesn't reload the page between routes, so a class left on `<html>` from
+a previous route wouldn't automatically clear). `surface`/`on-surface`/
+`surface-card` are the tokens that respond to this class; `ink`/`paper`
+stay fixed on purpose, for elements that are deliberately always-dark
+(Hero, Footer, modal backdrops) regardless of the site's own mode.
+
+The **Emerald & Gold** palette and **Luxury Serif** (Cormorant Garamond +
+Lato) font pairing were added for a real client whose existing brand
+(logo, event photography) was already dark-green-and-gold and going for a
+"premium evening event" look — worth knowing these two options exist if
+another client's brand points the same direction.
 
 **Admin panels intentionally don't theme by tenant at all** — `/admin` and
 `/super-admin` always render with the default Fraunces/Inter pairing and
@@ -435,9 +470,6 @@ and got fixed:
   tenant, with no way to change it. It's now backed by a real
   `about_text` column, editable from the new `/admin/settings` page (see
   section 3.3 for its Edge Function).
-- Found during user testing: the homepage's package cards had
-  `onSelect={() => {}}` — clicking one did nothing at all. Fixed to
-  navigate to `/packages`.
 - Found during user testing: the navbar showed only a bare logo with no
   business name next to it, and the Hero background image was washed out
   by a flat semi-transparent overlay (image at 0.6 opacity plus a uniform
@@ -445,6 +477,26 @@ and got fixed:
   their primary brand color) alongside the logo; the Hero image renders
   near-full clarity, with darkening concentrated at the bottom strip
   behind the text instead of across the whole photo.
+- Found during user testing: `ProtectedRoute` let a `super_admin` session
+  into `/admin` (business_admin routes) as a fallback, which meant logging
+  into the *wrong* login page (`/admin/login`) with super_admin
+  credentials silently succeeded into the Business Admin panel instead of
+  failing — very confusing, and a real contradiction of "super_admin never
+  edits an individual business's own content." Fixed: the two roles are
+  now strictly separate; each login page only grants access to its own
+  role's routes.
+- Added after user testing: the Super Admin panel had no way to edit a
+  business's tenant-management fields (name, slug, contact info) or
+  delete one — RLS already permitted both for `super_admin`, there was
+  just no UI. New `/super-admin/edit/:businessId` page covers both,
+  deletion gated behind typing the business's exact name to confirm (the
+  cascade wipes every one of that business's packages/gallery/blog/
+  testimonials/reviews/leads — irreversible, so this isn't a casual
+  action).
+- Added after user testing: gallery photos had no way to view full-size —
+  clicking one did nothing. New `Lightbox` component (click-to-enlarge,
+  arrow-key/button navigation, Escape to close) wired into the Gallery
+  page.
 
 Still present, lower priority: the homepage Hero headline ("Memorable
 events, handled with care by...") and the Contact page's CTA copy

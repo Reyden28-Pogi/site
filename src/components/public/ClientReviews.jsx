@@ -6,7 +6,7 @@ function Stars({ rating, size = 'text-base' }) {
   return (
     <span className={`${size} text-tertiary`} aria-label={`${rating} out of 5 stars`}>
       {'★'.repeat(rating)}
-      <span className="text-ink/15">{'★'.repeat(5 - rating)}</span>
+      <span className="text-on-surface/15">{'★'.repeat(5 - rating)}</span>
     </span>
   )
 }
@@ -69,9 +69,9 @@ export default function ClientReviews({ businessId, reviews }) {
   return (
     <section className="mx-auto max-w-3xl px-6 py-24">
       <div className="text-center">
-        <h2 className="brush-underline font-display text-2xl font-medium text-ink">Client reviews</h2>
+        <h2 className="brush-underline font-display text-2xl font-medium text-on-surface">Client reviews</h2>
         {averageRating && (
-          <p className="mt-4 text-sm text-ink/60">
+          <p className="mt-4 text-sm text-on-surface/60">
             <Stars rating={Math.round(averageRating)} size="text-lg" /> {averageRating} average from{' '}
             {reviews.length} review{reviews.length === 1 ? '' : 's'}
           </p>
@@ -86,28 +86,28 @@ export default function ClientReviews({ businessId, reviews }) {
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-40px' }}
-              className="rounded-xl border border-ink/10 bg-white p-5"
+              className="rounded-xl border border-on-surface/10 bg-surface-card p-5"
             >
               <div className="flex items-center justify-between">
-                <p className="font-medium text-ink">{review.client_name}</p>
+                <p className="font-medium text-on-surface">{review.client_name}</p>
                 <Stars rating={review.rating} />
               </div>
-              {review.comment && <p className="mt-2 text-sm text-ink/70">{review.comment}</p>}
-              <p className="mt-2 text-xs text-ink/40">{new Date(review.created_at).toLocaleDateString()}</p>
+              {review.comment && <p className="mt-2 text-sm text-on-surface/70">{review.comment}</p>}
+              <p className="mt-2 text-xs text-on-surface/40">{new Date(review.created_at).toLocaleDateString()}</p>
             </motion.div>
           ))}
         </div>
       )}
 
-      <div className="mt-12 rounded-2xl border border-ink/10 bg-white p-6">
-        <h3 className="font-display text-lg font-medium text-ink">Leave a review</h3>
+      <div className="mt-12 rounded-2xl border border-on-surface/10 bg-surface-card p-6">
+        <h3 className="font-display text-lg font-medium text-on-surface">Leave a review</h3>
 
         {status === 'success' ? (
           <p className="mt-4 text-sm text-brand">Thanks for your review!</p>
         ) : (
           <form onSubmit={handleSubmit} className="mt-4 grid gap-4">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-ink/70">Your name</span>
+              <span className="mb-1 block text-sm font-medium text-on-surface/70">Your name</span>
               <input
                 required
                 value={form.client_name}
@@ -117,7 +117,7 @@ export default function ClientReviews({ businessId, reviews }) {
             </label>
 
             <div>
-              <span className="mb-1 block text-sm font-medium text-ink/70">Your rating</span>
+              <span className="mb-1 block text-sm font-medium text-on-surface/70">Your rating</span>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
@@ -125,7 +125,7 @@ export default function ClientReviews({ businessId, reviews }) {
                     type="button"
                     onClick={() => setForm({ ...form, rating: n })}
                     aria-label={`${n} star${n > 1 ? 's' : ''}`}
-                    className={`text-2xl leading-none ${n <= form.rating ? 'text-tertiary' : 'text-ink/15'}`}
+                    className={`text-2xl leading-none ${n <= form.rating ? 'text-tertiary' : 'text-on-surface/15'}`}
                   >
                     ★
                   </button>
@@ -134,7 +134,7 @@ export default function ClientReviews({ businessId, reviews }) {
             </div>
 
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-ink/70">Comment (optional)</span>
+              <span className="mb-1 block text-sm font-medium text-on-surface/70">Comment (optional)</span>
               <textarea
                 rows={3}
                 value={form.comment}

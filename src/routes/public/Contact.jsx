@@ -68,10 +68,10 @@ export default function Contact() {
 
   return (
     <section className="mx-auto max-w-2xl px-6 py-24">
-      <h1 className="brush-underline font-display text-3xl font-medium text-ink">
+      <h1 className="brush-underline font-display text-3xl font-medium text-on-surface">
         Request a quote
       </h1>
-      <p className="mt-4 text-ink/60">
+      <p className="mt-4 text-on-surface/60">
         Tell us a bit about your event and {business?.name || 'we'}'ll be in touch soon.
       </p>
 
@@ -165,7 +165,7 @@ export default function Contact() {
 function Field({ label, children }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-ink/70">{label}</span>
+      <span className="mb-1 block text-sm font-medium text-on-surface/70">{label}</span>
       {children}
     </label>
   )

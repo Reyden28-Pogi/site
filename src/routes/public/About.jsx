@@ -10,7 +10,7 @@ export default function About() {
         initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="brush-underline font-display text-3xl font-medium text-ink"
+        className="brush-underline font-display text-3xl font-medium text-on-surface"
       >
         About {business?.name}
       </motion.h1>
@@ -20,7 +20,7 @@ export default function About() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: 0.1 }}
-        className="mt-8 space-y-4 text-ink/70"
+        className="mt-8 space-y-4 text-on-surface/70"
       >
         <p className="whitespace-pre-line">
           {business?.about_text ||
@@ -28,17 +28,17 @@ export default function About() {
         </p>
         {business?.address && (
           <p>
-            <strong className="text-ink">Based in:</strong> {business.address}
+            <strong className="text-on-surface">Based in:</strong> {business.address}
           </p>
         )}
         {business?.contact_email && (
           <p>
-            <strong className="text-ink">Email:</strong> {business.contact_email}
+            <strong className="text-on-surface">Email:</strong> {business.contact_email}
           </p>
         )}
         {business?.contact_phone && (
           <p>
-            <strong className="text-ink">Phone:</strong> {business.contact_phone}
+            <strong className="text-on-surface">Phone:</strong> {business.contact_phone}
           </p>
         )}
       </motion.div>

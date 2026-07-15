@@ -31,6 +31,8 @@ const ALLOWED_FONTS = new Set([
   'Quicksand',
   'Nunito Sans',
   'Space Grotesk',
+  'Cormorant Garamond',
+  'Lato',
 ])
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4'
@@ -95,6 +97,9 @@ Deno.serve(async (req) => {
     }
     if (typeof body.logo_url === 'string' && body.logo_url.length < 2000) {
       updates.logo_url = body.logo_url
+    }
+    if (typeof body.dark_mode === 'boolean') {
+      updates.dark_mode = body.dark_mode
     }
 
     if (Object.keys(updates).length === 0) {

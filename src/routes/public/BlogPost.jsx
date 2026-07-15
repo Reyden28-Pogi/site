@@ -29,7 +29,7 @@ export default function BlogPost() {
   if (notFound) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-24 text-center">
-        <p className="font-display text-2xl text-ink">Post not found</p>
+        <p className="font-display text-2xl text-on-surface">Post not found</p>
         <Link to="/blog" className="mt-4 inline-block text-sm text-brand hover:underline">
           ← Back to blog
         </Link>
@@ -55,12 +55,12 @@ export default function BlogPost() {
           className="mt-6 h-72 w-full rounded-2xl object-cover"
         />
       )}
-      <p className="mt-8 text-xs uppercase tracking-wide text-ink/40">
+      <p className="mt-8 text-xs uppercase tracking-wide text-on-surface/40">
         {new Date(post.created_at).toLocaleDateString()}
       </p>
-      <h1 className="mt-2 font-display text-3xl font-medium text-ink">{post.title}</h1>
+      <h1 className="mt-2 font-display text-3xl font-medium text-on-surface">{post.title}</h1>
       <div
-        className="prose prose-neutral mt-8 max-w-none text-ink/80"
+        className="prose prose-neutral mt-8 max-w-none text-on-surface/80"
         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content || '') }}
       />
     </motion.article>

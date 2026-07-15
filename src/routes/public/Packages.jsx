@@ -22,12 +22,12 @@ export default function Packages() {
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-24">
-      <h1 className="brush-underline font-display text-3xl font-medium text-ink">
+      <h1 className="brush-underline font-display text-3xl font-medium text-on-surface">
         Packages &amp; services
       </h1>
 
       {packages.length === 0 ? (
-        <p className="mt-8 text-sm text-ink/50">No packages published yet.</p>
+        <p className="mt-8 text-sm text-on-surface/50">No packages published yet.</p>
       ) : (
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {packages.map((pkg, i) => (
@@ -50,7 +50,7 @@ export default function Packages() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
-              className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-0 shadow-xl"
+              className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface-card p-0 shadow-xl"
             >
               {selected.image_url && (
                 <img
@@ -60,16 +60,16 @@ export default function Packages() {
                 />
               )}
               <div className="p-8">
-                <h2 className="font-display text-2xl font-medium text-ink">{selected.name}</h2>
+                <h2 className="font-display text-2xl font-medium text-on-surface">{selected.name}</h2>
                 {selected.price != null && (
                   <p className="mt-2 font-display text-xl text-brand">
                     ${Number(selected.price).toLocaleString()}
                   </p>
                 )}
-                <p className="mt-4 whitespace-pre-line text-ink/70">{selected.description}</p>
+                <p className="mt-4 whitespace-pre-line text-on-surface/70">{selected.description}</p>
                 <button
                   onClick={() => setSelected(null)}
-                  className="mt-8 rounded-full border border-ink/15 px-5 py-2 text-sm font-medium text-ink/70 hover:bg-ink/5"
+                  className="mt-8 rounded-full border border-on-surface/15 px-5 py-2 text-sm font-medium text-on-surface/70 hover:bg-on-surface/5"
                 >
                   Close
                 </button>

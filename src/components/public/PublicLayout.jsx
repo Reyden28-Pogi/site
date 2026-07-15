@@ -4,7 +4,7 @@ import Navbar from './Navbar.jsx'
 import Footer from './Footer.jsx'
 
 export default function PublicLayout() {
-  const { loading, error } = useBusiness()
+  const { business, loading, error } = useBusiness()
 
   if (loading) {
     return (
@@ -26,12 +26,14 @@ export default function PublicLayout() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <Footer />
+    <div className={business?.dark_mode ? 'dark' : ''}>
+      <div className="flex min-h-screen flex-col bg-surface text-on-surface">
+        <Navbar />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
     </div>
   )
 }

@@ -68,23 +68,24 @@ export function useBusiness() {
   return ctx
 }
 
-/** Derives light/dark shades from each base hex and sets CSS variables. */
+/** Derives light/dark shades from each base hex and sets CSS variables
+ * (as space-separated RGB channels — see index.css for why). */
 function applyTheme(business) {
   const root = document.documentElement
   if (business.theme_color) {
-    root.style.setProperty('--brand', business.theme_color)
-    root.style.setProperty('--brand-light', shade(business.theme_color, 0.25))
-    root.style.setProperty('--brand-dark', shade(business.theme_color, -0.2))
+    root.style.setProperty('--brand', hexToChannels(business.theme_color))
+    root.style.setProperty('--brand-light', hexToChannels(shade(business.theme_color, 0.25)))
+    root.style.setProperty('--brand-dark', hexToChannels(shade(business.theme_color, -0.2)))
   }
   if (business.secondary_color) {
-    root.style.setProperty('--secondary', business.secondary_color)
-    root.style.setProperty('--secondary-light', shade(business.secondary_color, 0.25))
-    root.style.setProperty('--secondary-dark', shade(business.secondary_color, -0.2))
+    root.style.setProperty('--secondary', hexToChannels(business.secondary_color))
+    root.style.setProperty('--secondary-light', hexToChannels(shade(business.secondary_color, 0.25)))
+    root.style.setProperty('--secondary-dark', hexToChannels(shade(business.secondary_color, -0.2)))
   }
   if (business.tertiary_color) {
-    root.style.setProperty('--tertiary', business.tertiary_color)
-    root.style.setProperty('--tertiary-light', shade(business.tertiary_color, 0.25))
-    root.style.setProperty('--tertiary-dark', shade(business.tertiary_color, -0.2))
+    root.style.setProperty('--tertiary', hexToChannels(business.tertiary_color))
+    root.style.setProperty('--tertiary-light', hexToChannels(shade(business.tertiary_color, 0.25)))
+    root.style.setProperty('--tertiary-dark', hexToChannels(shade(business.tertiary_color, -0.2)))
   }
 }
 
@@ -130,4 +131,14 @@ function shade(hex, percent) {
   g = Math.min(255, Math.max(0, g))
   b = Math.min(255, Math.max(0, b))
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+}
+
+/** "#b5502f" -> "181 80 47" — the space-separated channel format Tailwind
+ * needs to support opacity modifiers (see index.css / tailwind.config.js). */
+function hexToChannels(hex) {
+  const num = parseInt(hex.replace('#', ''), 16)
+  const r = (num >> 16) & 0xff
+  const g = (num >> 8) & 0xff
+  const b = num & 0xff
+  return `${r} ${g} ${b}`
 }

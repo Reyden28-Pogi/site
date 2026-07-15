@@ -8,22 +8,37 @@ export default {
         paper: '#FAF9F6',
         stone: '#8C8578',
         // 'brand' (primary), 'secondary', and 'tertiary' are set at
-        // runtime via CSS variables (per-business color choices)
+        // runtime via CSS variables (per-business color choices).
+        // Using rgb(var(--x) / <alpha-value>) — not a bare var(--x) — is
+        // required for Tailwind opacity modifiers (bg-brand/10, etc.) to
+        // actually generate CSS; a plain var() reference can't have alpha
+        // applied to it. --brand etc. are defined in index.css as
+        // space-separated RGB channels (e.g. "181 80 47"), not hex.
         brand: {
-          DEFAULT: 'var(--brand)',
-          light: 'var(--brand-light)',
-          dark: 'var(--brand-dark)',
+          DEFAULT: 'rgb(var(--brand) / <alpha-value>)',
+          light: 'rgb(var(--brand-light) / <alpha-value>)',
+          dark: 'rgb(var(--brand-dark) / <alpha-value>)',
         },
         secondary: {
-          DEFAULT: 'var(--secondary)',
-          light: 'var(--secondary-light)',
-          dark: 'var(--secondary-dark)',
+          DEFAULT: 'rgb(var(--secondary) / <alpha-value>)',
+          light: 'rgb(var(--secondary-light) / <alpha-value>)',
+          dark: 'rgb(var(--secondary-dark) / <alpha-value>)',
         },
         tertiary: {
-          DEFAULT: 'var(--tertiary)',
-          light: 'var(--tertiary-light)',
-          dark: 'var(--tertiary-dark)',
+          DEFAULT: 'rgb(var(--tertiary) / <alpha-value>)',
+          light: 'rgb(var(--tertiary-light) / <alpha-value>)',
+          dark: 'rgb(var(--tertiary-dark) / <alpha-value>)',
         },
+        // Page-surface tokens that respond to dark mode (see index.css's
+        // `.dark` class and businessContext.jsx). Public site components
+        // should use these instead of bg-paper/text-ink/bg-white for
+        // anything that should adapt — admin panels intentionally keep
+        // using paper/ink/white directly, since they never go dark.
+        surface: {
+          DEFAULT: 'rgb(var(--surface) / <alpha-value>)',
+          card: 'rgb(var(--surface-card) / <alpha-value>)',
+        },
+        'on-surface': 'rgb(var(--on-surface) / <alpha-value>)',
       },
       fontFamily: {
         // Also runtime-driven — per-business heading/body font pairing

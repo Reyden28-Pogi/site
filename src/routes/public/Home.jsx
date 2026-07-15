@@ -94,7 +94,7 @@ export default function Home() {
 
       <section className="mx-auto max-w-6xl px-6 py-24">
         <div className="mb-12 flex items-end justify-between">
-          <h2 className="brush-underline font-display text-3xl font-medium text-ink">
+          <h2 className="brush-underline font-display text-3xl font-medium text-on-surface">
             Featured packages
           </h2>
           <Link
@@ -105,7 +105,7 @@ export default function Home() {
           </Link>
         </div>
         {packages.length === 0 ? (
-          <p className="text-sm text-ink/50">
+          <p className="text-sm text-on-surface/50">
             No packages published yet — add some from the admin dashboard.
           </p>
         ) : (
@@ -125,11 +125,11 @@ export default function Home() {
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
-        className="border-t border-ink/10 bg-secondary/5 py-24"
+        className="border-t border-on-surface/10 bg-secondary/5 py-24"
       >
         <div className="mx-auto max-w-3xl px-6 text-center">
-          <h2 className="font-display text-2xl font-medium text-ink">Ready to plan yours?</h2>
-          <p className="mt-3 text-ink/60">
+          <h2 className="font-display text-2xl font-medium text-on-surface">Ready to plan yours?</h2>
+          <p className="mt-3 text-on-surface/60">
             Tell us about your event and we'll follow up with a custom quote.
           </p>
           <Link

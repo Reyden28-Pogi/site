@@ -13,6 +13,7 @@ const PALETTES = [
   { name: 'Charcoal & Rose', primary: '#333333', secondary: '#C97B8B', tertiary: '#8FAE94' },
   { name: 'Slate & Coral', primary: '#4A5C7A', secondary: '#E07856', tertiary: '#C9A227' },
   { name: 'Forest & Clay', primary: '#2F4A3D', secondary: '#B5502F', tertiary: '#D9B36C' },
+  { name: 'Emerald & Gold', primary: '#1B3A2B', secondary: '#C9A227', tertiary: '#E8DCC0' },
 ]
 
 // Curated font pairings — kept curated rather than freeform so every
@@ -25,6 +26,7 @@ const FONT_PAIRS = [
   { name: 'Editorial Serif', heading: 'Playfair Display', body: 'Source Sans 3' },
   { name: 'Friendly Rounded', heading: 'Quicksand', body: 'Nunito Sans' },
   { name: 'Bold Contemporary', heading: 'Space Grotesk', body: 'Inter' },
+  { name: 'Luxury Serif', heading: 'Cormorant Garamond', body: 'Lato' },
 ]
 
 function loadPreviewFonts() {
@@ -50,6 +52,7 @@ const emptyForm = {
   heading_font: 'Fraunces',
   body_font: 'Inter',
   logo_url: '',
+  dark_mode: false,
 }
 
 export default function SettingsAdmin() {
@@ -74,7 +77,9 @@ export default function SettingsAdmin() {
 
     supabase
       .from('businesses')
-      .select('about_text, address, contact_phone, theme_color, secondary_color, tertiary_color, heading_font, body_font, logo_url')
+      .select(
+        'about_text, address, contact_phone, theme_color, secondary_color, tertiary_color, heading_font, body_font, logo_url, dark_mode'
+      )
       .eq('id', appUser.business_id)
       .single()
       .then(({ data }) => {
@@ -89,6 +94,7 @@ export default function SettingsAdmin() {
             heading_font: data.heading_font || emptyForm.heading_font,
             body_font: data.body_font || emptyForm.body_font,
             logo_url: data.logo_url || '',
+            dark_mode: data.dark_mode || false,
           })
         }
         setLoading(false)
@@ -278,6 +284,23 @@ export default function SettingsAdmin() {
             })}
           </div>
         </div>
+
+        {/* ---------- Dark mode ---------- */}
+        <label className="flex items-center justify-between rounded-xl border border-ink/10 p-4">
+          <span>
+            <span className="block text-sm font-medium text-ink">Dark mode</span>
+            <span className="block text-xs text-ink/50">
+              Switches your public site to a dark background with light text.
+              Your color palette and fonts still apply on top of it.
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            checked={form.dark_mode}
+            onChange={(e) => setForm({ ...form, dark_mode: e.target.checked })}
+            className="h-5 w-5 shrink-0"
+          />
+        </label>
 
         {status === 'success' && <p className="text-sm text-brand">Saved!</p>}
         {status === 'error' && <p className="text-sm text-red-600">{errorMessage}</p>}

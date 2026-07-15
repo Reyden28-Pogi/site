@@ -3,17 +3,41 @@
 @tailwind utilities;
 
 :root {
-  --brand: #b5502f;
-  --brand-light: #d97757;
-  --brand-dark: #8a3c22;
-  --secondary: #6b8f71;
-  --secondary-light: #8fae94;
-  --secondary-dark: #4d6b52;
-  --tertiary: #4a5c7a;
-  --tertiary-light: #6c7fa0;
-  --tertiary-dark: #354362;
+  /* Colors are stored as space-separated RGB channels (not hex) so
+     Tailwind's opacity modifiers (bg-brand/10, etc.) actually work —
+     Tailwind can only apply an alpha channel to a color defined this way
+     (rgb(var(--x) / <alpha-value>) in tailwind.config.js), not to a plain
+     hex string. This was previously broken: classes like bg-secondary/5
+     silently generated no CSS at all. */
+  --brand: 181 80 47;
+  --brand-light: 217 119 87;
+  --brand-dark: 138 60 34;
+  --secondary: 107 143 113;
+  --secondary-light: 143 174 148;
+  --secondary-dark: 77 107 82;
+  --tertiary: 74 92 122;
+  --tertiary-light: 108 127 160;
+  --tertiary-dark: 53 67 98;
   --font-display: 'Fraunces';
   --font-body: 'Inter';
+
+  /* Page surface tokens — these DO respond to dark mode (a `.dark` class
+     scoped to the public site's own root wrapper, per-business — see
+     PublicLayout.jsx/businessContext.jsx. Never applied to <html>
+     globally, so admin panels are always unaffected regardless of any
+     tenant's choice). `ink`/`paper` below stay fixed regardless of mode,
+     for elements that are deliberately always-dark (Hero, Footer) or
+     always-light — most page content should use surface/on-surface/
+     surface-card instead. */
+  --surface: 250 249 246;
+  --on-surface: 22 21 19;
+  --surface-card: 255 255 255;
+}
+
+.dark {
+  --surface: 23 23 22;
+  --on-surface: 237 232 222;
+  --surface-card: 34 33 31;
 }
 
 html {
@@ -38,7 +62,7 @@ h1, h2, h3, h4 {
 }
 
 .input {
-  @apply w-full rounded-lg border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brand;
+  @apply w-full rounded-lg border border-on-surface/15 bg-surface-card px-4 py-2.5 text-sm text-on-surface outline-none transition-colors focus:border-brand;
 }
 
 /* signature: brush-style underline used under section headings */
@@ -53,7 +77,7 @@ h1, h2, h3, h4 {
   bottom: -0.15em;
   height: 0.14em;
   width: 100%;
-  background: var(--brand);
+  background: rgb(var(--brand));
   transform-origin: left;
   border-radius: 2px;
 }
