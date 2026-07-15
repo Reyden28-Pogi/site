@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { BusinessProvider } from './lib/businessContext'
 
@@ -10,24 +11,39 @@ import Blog from './routes/public/Blog.jsx'
 import BlogPost from './routes/public/BlogPost.jsx'
 import Contact from './routes/public/Contact.jsx'
 
-import AdminLogin from './routes/admin/AdminLogin.jsx'
-import AcceptInvite from './routes/admin/AcceptInvite.jsx'
-import AdminLayout from './routes/admin/AdminLayout.jsx'
-import Dashboard from './routes/admin/Dashboard.jsx'
-import PackagesAdmin from './routes/admin/PackagesAdmin.jsx'
-import GalleryAdmin from './routes/admin/GalleryAdmin.jsx'
-import BlogAdmin from './routes/admin/BlogAdmin.jsx'
-import TestimonialsAdmin from './routes/admin/TestimonialsAdmin.jsx'
-import LeadsAdmin from './routes/admin/LeadsAdmin.jsx'
-import ReviewsAdmin from './routes/admin/ReviewsAdmin.jsx'
-import SettingsAdmin from './routes/admin/SettingsAdmin.jsx'
 import ProtectedRoute from './components/admin/ProtectedRoute.jsx'
 
-import SuperAdminLogin from './routes/super-admin/SuperAdminLogin.jsx'
-import SuperAdminLayout from './routes/super-admin/SuperAdminLayout.jsx'
-import BusinessesList from './routes/super-admin/BusinessesList.jsx'
-import EditBusiness from './routes/super-admin/EditBusiness.jsx'
-import CreateBusiness from './routes/super-admin/CreateBusiness.jsx'
+// Admin and super-admin routes are lazy-loaded: a public-site visitor
+// should never have to download admin-only code (including react-quill,
+// a genuinely heavy dependency) just to view a business's marketing site.
+// This is the biggest single lever on bundle size for this app — splitting
+// these out means the public bundle no longer carries the entire admin
+// surface with it.
+const AdminLogin = lazy(() => import('./routes/admin/AdminLogin.jsx'))
+const AcceptInvite = lazy(() => import('./routes/admin/AcceptInvite.jsx'))
+const AdminLayout = lazy(() => import('./routes/admin/AdminLayout.jsx'))
+const Dashboard = lazy(() => import('./routes/admin/Dashboard.jsx'))
+const PackagesAdmin = lazy(() => import('./routes/admin/PackagesAdmin.jsx'))
+const GalleryAdmin = lazy(() => import('./routes/admin/GalleryAdmin.jsx'))
+const BlogAdmin = lazy(() => import('./routes/admin/BlogAdmin.jsx'))
+const TestimonialsAdmin = lazy(() => import('./routes/admin/TestimonialsAdmin.jsx'))
+const LeadsAdmin = lazy(() => import('./routes/admin/LeadsAdmin.jsx'))
+const ReviewsAdmin = lazy(() => import('./routes/admin/ReviewsAdmin.jsx'))
+const SettingsAdmin = lazy(() => import('./routes/admin/SettingsAdmin.jsx'))
+
+const SuperAdminLogin = lazy(() => import('./routes/super-admin/SuperAdminLogin.jsx'))
+const SuperAdminLayout = lazy(() => import('./routes/super-admin/SuperAdminLayout.jsx'))
+const BusinessesList = lazy(() => import('./routes/super-admin/BusinessesList.jsx'))
+const EditBusiness = lazy(() => import('./routes/super-admin/EditBusiness.jsx'))
+const CreateBusiness = lazy(() => import('./routes/super-admin/CreateBusiness.jsx'))
+
+function AdminLoadingFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-paper text-ink/50">
+      Loading…
+    </div>
+  )
+}
 
 export default function App() {
   return (
@@ -53,39 +69,141 @@ export default function App() {
       />
 
       {/* ---------- Business Admin ---------- */}
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin/accept-invite" element={<AcceptInvite />} />
+      <Route
+        path="/admin/login"
+        element={
+          <Suspense fallback={<AdminLoadingFallback />}>
+            <AdminLogin />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/admin/accept-invite"
+        element={
+          <Suspense fallback={<AdminLoadingFallback />}>
+            <AcceptInvite />
+          </Suspense>
+        }
+      />
       <Route
         path="/admin"
         element={
           <ProtectedRoute role="business_admin">
-            <AdminLayout />
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <AdminLayout />
+            </Suspense>
           </ProtectedRoute>
         }
       >
-        <Route index element={<Dashboard />} />
-        <Route path="packages" element={<PackagesAdmin />} />
-        <Route path="gallery" element={<GalleryAdmin />} />
-        <Route path="blog" element={<BlogAdmin />} />
-        <Route path="testimonials" element={<TestimonialsAdmin />} />
-        <Route path="leads" element={<LeadsAdmin />} />
-        <Route path="reviews" element={<ReviewsAdmin />} />
-        <Route path="settings" element={<SettingsAdmin />} />
+        <Route
+          index
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <Dashboard />
+            </Suspense>
+          }
+        />
+        <Route
+          path="packages"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <PackagesAdmin />
+            </Suspense>
+          }
+        />
+        <Route
+          path="gallery"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <GalleryAdmin />
+            </Suspense>
+          }
+        />
+        <Route
+          path="blog"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <BlogAdmin />
+            </Suspense>
+          }
+        />
+        <Route
+          path="testimonials"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <TestimonialsAdmin />
+            </Suspense>
+          }
+        />
+        <Route
+          path="leads"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <LeadsAdmin />
+            </Suspense>
+          }
+        />
+        <Route
+          path="reviews"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <ReviewsAdmin />
+            </Suspense>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <SettingsAdmin />
+            </Suspense>
+          }
+        />
       </Route>
 
       {/* ---------- Super Admin (tenant management only) ---------- */}
-      <Route path="/super-admin/login" element={<SuperAdminLogin />} />
+      <Route
+        path="/super-admin/login"
+        element={
+          <Suspense fallback={<AdminLoadingFallback />}>
+            <SuperAdminLogin />
+          </Suspense>
+        }
+      />
       <Route
         path="/super-admin"
         element={
           <ProtectedRoute role="super_admin">
-            <SuperAdminLayout />
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <SuperAdminLayout />
+            </Suspense>
           </ProtectedRoute>
         }
       >
-        <Route index element={<BusinessesList />} />
-        <Route path="edit/:businessId" element={<EditBusiness />} />
-        <Route path="new" element={<CreateBusiness />} />
+        <Route
+          index
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <BusinessesList />
+            </Suspense>
+          }
+        />
+        <Route
+          path="edit/:businessId"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <EditBusiness />
+            </Suspense>
+          }
+        />
+        <Route
+          path="new"
+          element={
+            <Suspense fallback={<AdminLoadingFallback />}>
+              <CreateBusiness />
+            </Suspense>
+          }
+        />
       </Route>
     </Routes>
   )

@@ -7,13 +7,18 @@ export default function GalleryAdmin() {
   const { appUser } = useAuth()
   const [images, setImages] = useState([])
   const [uploading, setUploading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   async function load() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('gallery_images')
       .select('*')
       .eq('business_id', appUser.business_id)
       .order('uploaded_at', { ascending: false })
+    if (error) {
+      setErrorMessage(`Couldn't load gallery: ${error.message}`)
+      return
+    }
     setImages(data || [])
   }
 
@@ -25,42 +30,57 @@ export default function GalleryAdmin() {
     const files = Array.from(e.target.files || [])
     if (!files.length) return
     setUploading(true)
+    setErrorMessage(null)
+    const failed = []
 
     for (const file of files) {
       try {
         const image_url = await uploadImage(file)
-        await supabase.from('gallery_images').insert({
+        const { error } = await supabase.from('gallery_images').insert({
           business_id: appUser.business_id,
           image_url,
           caption: '',
         })
+        if (error) throw error
       } catch (err) {
-        console.error('Upload failed for', file.name, err)
+        failed.push(file.name)
       }
     }
 
     setUploading(false)
     e.target.value = ''
+    if (failed.length) {
+      setErrorMessage(`Failed to upload: ${failed.join(', ')}`)
+    }
     load()
   }
 
-  async function updateCaption(id, caption) {
+  function updateCaption(id, caption) {
     setImages((imgs) => imgs.map((img) => (img.id === id ? { ...img, caption } : img)))
   }
 
   async function saveCaption(id, caption) {
-    await supabase.from('gallery_images').update({ caption }).eq('id', id)
+    const { error } = await supabase.from('gallery_images').update({ caption }).eq('id', id)
+    if (error) setErrorMessage(`Couldn't save caption: ${error.message}`)
   }
 
   async function handleDelete(id) {
     if (!confirm('Delete this photo?')) return
-    await supabase.from('gallery_images').delete().eq('id', id)
+    const { error } = await supabase.from('gallery_images').delete().eq('id', id)
+    if (error) {
+      setErrorMessage(`Couldn't delete: ${error.message}`)
+      return
+    }
     load()
   }
 
   return (
     <div>
       <h1 className="font-display text-2xl font-medium text-ink">Gallery</h1>
+
+      {errorMessage && (
+        <p className="mt-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{errorMessage}</p>
+      )}
 
       <div className="mt-6 rounded-2xl border border-ink/10 bg-white p-6">
         <span className="mb-1 block text-sm font-medium text-ink/70">Bulk upload photos</span>

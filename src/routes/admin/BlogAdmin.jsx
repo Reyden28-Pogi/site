@@ -27,13 +27,18 @@ export default function BlogAdmin() {
   const [posts, setPosts] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   async function load() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('blog_posts')
       .select('*')
       .eq('business_id', appUser.business_id)
       .order('created_at', { ascending: false })
+    if (error) {
+      setErrorMessage(`Couldn't load posts: ${error.message}`)
+      return
+    }
     setPosts(data || [])
   }
 
@@ -44,6 +49,7 @@ export default function BlogAdmin() {
   async function handleSave(e) {
     e.preventDefault()
     setSaving(true)
+    setErrorMessage(null)
     const payload = {
       business_id: appUser.business_id,
       title: form.title,
@@ -53,31 +59,56 @@ export default function BlogAdmin() {
       is_published: form.is_published,
     }
 
-    if (form.id) {
-      await supabase.from('blog_posts').update(payload).eq('id', form.id)
-    } else {
-      await supabase.from('blog_posts').insert(payload)
-    }
+    const { error } = form.id
+      ? await supabase.from('blog_posts').update(payload).eq('id', form.id)
+      : await supabase.from('blog_posts').insert(payload)
 
     setSaving(false)
+
+    if (error) {
+      // Most likely cause: another post already uses this slug (unique
+      // per business_id + slug) — surface that plainly rather than a raw
+      // Postgres constraint message.
+      const friendly = error.message.includes('duplicate key')
+        ? 'That URL slug is already used by another post — please choose a different one.'
+        : error.message
+      setErrorMessage(`Couldn't save: ${friendly}`)
+      return
+    }
+
     setForm(emptyForm)
     load()
   }
 
   async function togglePublish(post) {
-    await supabase.from('blog_posts').update({ is_published: !post.is_published }).eq('id', post.id)
+    const { error } = await supabase
+      .from('blog_posts')
+      .update({ is_published: !post.is_published })
+      .eq('id', post.id)
+    if (error) {
+      setErrorMessage(`Couldn't update: ${error.message}`)
+      return
+    }
     load()
   }
 
   async function handleDelete(id) {
     if (!confirm('Delete this post?')) return
-    await supabase.from('blog_posts').delete().eq('id', id)
+    const { error } = await supabase.from('blog_posts').delete().eq('id', id)
+    if (error) {
+      setErrorMessage(`Couldn't delete: ${error.message}`)
+      return
+    }
     load()
   }
 
   return (
     <div>
       <h1 className="font-display text-2xl font-medium text-ink">Blog</h1>
+
+      {errorMessage && (
+        <p className="mt-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{errorMessage}</p>
+      )}
 
       <form onSubmit={handleSave} className="mt-8 grid gap-4 rounded-2xl border border-ink/10 bg-white p-6">
         <label className="block">

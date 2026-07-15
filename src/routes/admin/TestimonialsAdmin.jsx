@@ -9,13 +9,18 @@ export default function TestimonialsAdmin() {
   const [items, setItems] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   async function load() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('testimonials')
       .select('*')
       .eq('business_id', appUser.business_id)
       .order('created_at', { ascending: false })
+    if (error) {
+      setErrorMessage(`Couldn't load testimonials: ${error.message}`)
+      return
+    }
     setItems(data || [])
   }
 
@@ -26,6 +31,7 @@ export default function TestimonialsAdmin() {
   async function handleSave(e) {
     e.preventDefault()
     setSaving(true)
+    setErrorMessage(null)
     const payload = {
       business_id: appUser.business_id,
       client_name: form.client_name,
@@ -34,31 +40,50 @@ export default function TestimonialsAdmin() {
       is_visible: form.is_visible,
     }
 
-    if (form.id) {
-      await supabase.from('testimonials').update(payload).eq('id', form.id)
-    } else {
-      await supabase.from('testimonials').insert(payload)
-    }
+    const { error } = form.id
+      ? await supabase.from('testimonials').update(payload).eq('id', form.id)
+      : await supabase.from('testimonials').insert(payload)
 
     setSaving(false)
+
+    if (error) {
+      setErrorMessage(`Couldn't save: ${error.message}`)
+      return
+    }
+
     setForm(emptyForm)
     load()
   }
 
   async function toggleVisible(item) {
-    await supabase.from('testimonials').update({ is_visible: !item.is_visible }).eq('id', item.id)
+    const { error } = await supabase
+      .from('testimonials')
+      .update({ is_visible: !item.is_visible })
+      .eq('id', item.id)
+    if (error) {
+      setErrorMessage(`Couldn't update visibility: ${error.message}`)
+      return
+    }
     load()
   }
 
   async function handleDelete(id) {
     if (!confirm('Delete this testimonial?')) return
-    await supabase.from('testimonials').delete().eq('id', id)
+    const { error } = await supabase.from('testimonials').delete().eq('id', id)
+    if (error) {
+      setErrorMessage(`Couldn't delete: ${error.message}`)
+      return
+    }
     load()
   }
 
   return (
     <div>
       <h1 className="font-display text-2xl font-medium text-ink">Testimonials</h1>
+
+      {errorMessage && (
+        <p className="mt-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{errorMessage}</p>
+      )}
 
       <form onSubmit={handleSave} className="mt-8 grid gap-4 rounded-2xl border border-ink/10 bg-white p-6">
         <label className="block">

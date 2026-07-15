@@ -508,7 +508,77 @@ mismatch matters for a given client.
 
 ---
 
-## 11. Security notes
+## 11. Code-quality review: what was found and fixed
+
+A pass specifically looking for engineering (not content) issues turned up
+three real problems, now fixed, plus some known debt left as-is with the
+reasoning documented.
+
+**Fixed:**
+- **Every admin CRUD write silently ignored its own errors.** Across
+  `PackagesAdmin`, `GalleryAdmin`, `BlogAdmin`, and `TestimonialsAdmin`
+  (13 write calls total), the pattern was `await supabase.from(...).update(...)`
+  with the returned `{ error }` never checked. If a save failed — a
+  network blip, an RLS rejection, a duplicate blog slug — the form would
+  reset as if it had succeeded, with no indication anything went wrong.
+  All four now check `error` on every insert/update/delete and show it in
+  the UI instead of failing silently. `BlogAdmin` also translates the
+  duplicate-slug Postgres error into a plain-English message instead of
+  showing the raw constraint violation text.
+- **No code-splitting — the entire admin surface shipped in the public
+  site's bundle.** Every visitor to a business's public marketing site was
+  downloading the whole admin panel too, including `react-quill` (the
+  blog rich-text editor), a ~240KB dependency no public visitor ever
+  needs. `App.jsx` now lazy-loads every `/admin` and `/super-admin` route
+  component via `React.lazy()` + `Suspense`. Concretely: the main bundle
+  dropped from ~850KB to ~570KB, and Quill now lives in its own
+  240KB chunk that only loads when a business_admin actually opens the
+  Blog editor.
+- **Duplicated Turnstile verification logic.** `submit-lead` and
+  `submit-review` each had their own copy of the same
+  `fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', ...)`
+  call. Extracted to `_shared/turnstile.ts`, alongside the existing
+  `_shared/rateLimit.ts`.
+
+**Known debt, left as-is (with reasoning):**
+- **No pagination anywhere.** Every admin list (`LeadsAdmin`,
+  `GalleryAdmin`, `BlogAdmin`, `PackagesAdmin`, `ReviewsAdmin`,
+  `TestimonialsAdmin`, and the per-business stats in
+  `BusinessesList`) fetches the full table with `.select('*')` and no
+  `.limit()`/`.range()`. Fine at the scale this has actually been used at
+  so far; will need real pagination before any tenant accumulates
+  hundreds of leads or gallery photos, and `BusinessesList`'s
+  per-business stats queries (one round trip per business, per stat) will
+  need to become a single aggregating query or Postgres view once there
+  are more than a handful of tenants.
+- **Eight separate `businesses` columns for what is conceptually one
+  "branding" blob** (`theme_color`, `secondary_color`, `tertiary_color`,
+  `heading_font`, `body_font`, `logo_url`, `about_text`, `dark_mode`).
+  Each one required touching four places (migration, `get-business`'s
+  select list, `update-business-profile`'s allowlist, and
+  `SettingsAdmin`'s form state) to add. A `branding jsonb` column (or a
+  separate `business_branding` table) would scale better if more fields
+  keep getting added; wasn't worth the migration/rewrite for what exists
+  today.
+- **No automated tests** — zero unit, integration, or E2E coverage
+  anywhere. Reasonable for where this project is now; a real gap if it
+  keeps growing or other people start contributing to it.
+- **Inconsistent input validation.** Newer fields added through Edge
+  Functions (`about_text`, `address`, `contact_phone` via
+  `update-business-profile`) have length limits enforced server-side;
+  older direct-to-Supabase writes (package name/description, blog
+  content, testimonial quotes) have none, client or server side. Not a
+  security issue (RLS still scopes who can write what), just an
+  inconsistency worth normalizing.
+- **No color-contrast checking** on the custom color pickers in
+  `/admin/settings`. A business_admin can pick a secondary/tertiary color
+  with poor contrast against text with no warning. The curated palette
+  trios are designed to avoid this, but the individual override pickers
+  have no guardrail.
+
+---
+
+## 12. Security notes
 
 **Fixed in `0002`–`0005` migrations / the Edge Functions:**
 - The `businesses` table has no anon-readable policy. Previously, any
@@ -598,7 +668,7 @@ guarantee of "no issues":**
 
 ---
 
-## 12. Roadmap ideas (not built — deliberately deferred)
+## 13. Roadmap ideas (not built — deliberately deferred)
 
 - **Self-serve signup.** Right now onboarding a client is invite-only: a
   super_admin creates the business and invites its first admin from

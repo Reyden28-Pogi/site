@@ -10,13 +10,18 @@ export default function PackagesAdmin() {
   const [packages, setPackages] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   async function load() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('packages')
       .select('*')
       .eq('business_id', appUser.business_id)
       .order('created_at', { ascending: false })
+    if (error) {
+      setErrorMessage(`Couldn't load packages: ${error.message}`)
+      return
+    }
     setPackages(data || [])
   }
 
@@ -27,6 +32,7 @@ export default function PackagesAdmin() {
   async function handleSave(e) {
     e.preventDefault()
     setSaving(true)
+    setErrorMessage(null)
     const payload = {
       business_id: appUser.business_id,
       name: form.name,
@@ -36,26 +42,38 @@ export default function PackagesAdmin() {
       is_active: form.is_active,
     }
 
-    if (form.id) {
-      await supabase.from('packages').update(payload).eq('id', form.id)
-    } else {
-      await supabase.from('packages').insert(payload)
-    }
+    const { error } = form.id
+      ? await supabase.from('packages').update(payload).eq('id', form.id)
+      : await supabase.from('packages').insert(payload)
 
     setSaving(false)
+
+    if (error) {
+      setErrorMessage(`Couldn't save: ${error.message}`)
+      return
+    }
+
     setForm(emptyForm)
     load()
   }
 
   async function handleDelete(id) {
     if (!confirm('Delete this package?')) return
-    await supabase.from('packages').delete().eq('id', id)
+    const { error } = await supabase.from('packages').delete().eq('id', id)
+    if (error) {
+      setErrorMessage(`Couldn't delete: ${error.message}`)
+      return
+    }
     load()
   }
 
   return (
     <div>
       <h1 className="font-display text-2xl font-medium text-ink">Packages</h1>
+
+      {errorMessage && (
+        <p className="mt-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{errorMessage}</p>
+      )}
 
       <form onSubmit={handleSave} className="mt-8 grid gap-4 rounded-2xl border border-ink/10 bg-white p-6 sm:grid-cols-2">
         <label className="block sm:col-span-2">

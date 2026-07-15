@@ -12,6 +12,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4'
 import { checkRateLimit, clientIp } from '../_shared/rateLimit.ts'
+import { verifyTurnstile } from '../_shared/turnstile.ts'
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -44,18 +45,8 @@ Deno.serve(async (req) => {
       return json({ error: 'rating must be a whole number from 1 to 5' }, 400)
     }
 
-    const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        secret: Deno.env.get('TURNSTILE_SECRET_KEY')!,
-        response: turnstile_token,
-        remoteip: ip,
-      }),
-    })
-    const verifyData = await verifyRes.json()
-
-    if (!verifyData.success) {
+    const verified = await verifyTurnstile(turnstile_token, ip)
+    if (!verified) {
       return json({ error: 'Captcha verification failed' }, 400)
     }
 
