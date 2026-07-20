@@ -1,7 +1,9 @@
 // Supabase Edge Function: update-business-profile
 //
 // Lets a business_admin edit a deliberately limited set of their OWN
-// business's fields: about_text, address, contact_phone, theme_color.
+// business's fields: about_text, address, contact_phone, theme_color,
+// secondary_color, tertiary_color, heading_font, body_font, logo_url,
+// dark_mode, social_links.
 //
 // Why an Edge Function instead of an RLS UPDATE policy: the `businesses`
 // table has no business_admin write policy at all (see
@@ -34,6 +36,20 @@ const ALLOWED_FONTS = new Set([
   'Cormorant Garamond',
   'Lato',
 ])
+
+// Same reasoning as ALLOWED_FONTS: an allowlist of known platform keys
+// rather than accepting arbitrary object keys, since this becomes part of
+// what's rendered (and linked to) on the public site.
+const ALLOWED_SOCIAL_PLATFORMS = new Set(['facebook', 'instagram', 'tiktok', 'twitter', 'youtube'])
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4'
 
@@ -74,7 +90,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json()
 
-    // Allowlist: only these five fields, nothing else, regardless of what
+    // Allowlist: only the fields below, nothing else, regardless of what
     // the request body contains.
     const updates: Record<string, unknown> = {}
     if (typeof body.about_text === 'string') updates.about_text = body.about_text.slice(0, 5000)
@@ -100,6 +116,21 @@ Deno.serve(async (req) => {
     }
     if (typeof body.dark_mode === 'boolean') {
       updates.dark_mode = body.dark_mode
+    }
+    if (body.social_links && typeof body.social_links === 'object' && !Array.isArray(body.social_links)) {
+      const cleaned: Record<string, string> = {}
+      for (const [key, value] of Object.entries(body.social_links)) {
+        if (
+          ALLOWED_SOCIAL_PLATFORMS.has(key) &&
+          typeof value === 'string' &&
+          value.length > 0 &&
+          value.length < 500 &&
+          isHttpUrl(value)
+        ) {
+          cleaned[key] = value
+        }
+      }
+      updates.social_links = cleaned
     }
 
     if (Object.keys(updates).length === 0) {

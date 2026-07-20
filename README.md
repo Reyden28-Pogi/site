@@ -95,6 +95,9 @@ them automatically — you don't run these one at a time):
 - `0009_brand_customization.sql` — adds `secondary_color`, `tertiary_color`,
   `heading_font`, `body_font` for fuller brand customization — see section 8
 - `0010_dark_mode.sql` — adds a `dark_mode` boolean toggle — see section 8
+- `0011_social_links.sql` — adds a `social_links` jsonb column (one column
+  for all platforms, not one column per platform — see its own comment
+  header for why, and section 11's note about avoiding more loose columns)
 
 See section 11 for the reasoning behind the hardening/rate-limiting ones.
 
@@ -301,7 +304,7 @@ where you manage all tenants.
 src/
   lib/                    Supabase client, image upload helper, business context
   hooks/useAuth.js        Supabase Auth + role/business lookup
-  components/public/      Navbar, Footer, Hero, PackageCard, GalleryGrid, TestimonialCarousel, ClientReviews, StatsCounter, TurnstileWidget, Lightbox
+  components/public/      Navbar, Footer, Hero, PackageCard, GalleryGrid, TestimonialCarousel, ClientReviews, StatsCounter, TurnstileWidget, Lightbox, SocialIcons
   components/admin/       ProtectedRoute, Sidebar, ImageUploader
   routes/public/          Home, About, Packages, Gallery, Blog, BlogPost, Contact
   routes/admin/           AdminLogin, AcceptInvite, AdminLayout, Dashboard, PackagesAdmin, GalleryAdmin, BlogAdmin, TestimonialsAdmin, LeadsAdmin, ReviewsAdmin, SettingsAdmin
@@ -317,6 +320,7 @@ supabase/
   migrations/0008_business_logo.sql    Editable logo_url column
   migrations/0009_brand_customization.sql  secondary/tertiary colors + font pairing
   migrations/0010_dark_mode.sql         Per-business dark_mode boolean
+  migrations/0011_social_links.sql      social_links jsonb (one column for every platform)
   functions/_shared/rateLimit.ts       Rate-limit + client-IP helper shared across functions below
   functions/get-business                Public, single-row business lookup by slug (service role, rate-limited)
   functions/upload-image               Validated upload into the caller's own Storage folder (type/size checked)
@@ -393,6 +397,19 @@ Lato) font pairing were added for a real client whose existing brand
 (logo, event photography) was already dark-green-and-gold and going for a
 "premium evening event" look — worth knowing these two options exist if
 another client's brand points the same direction.
+
+**Social links** (Facebook, Instagram, TikTok, Twitter/X, YouTube) show as
+icons in the footer, editable from the same Settings page. Stored as one
+`social_links` jsonb column rather than a column per platform — see that
+migration's comment header, and section 11's note about the branding
+columns already needing this treatment. The icons themselves
+(`SocialIcons.jsx`) are hand-built minimal line shapes, not reproductions
+of each platform's official logo — avoids any trademark-reproduction
+question entirely, and reads more "premium/editorial" than solid
+brand-color logos would anyway. `update-business-profile` validates each
+URL (`new URL()` must parse, http/https only) and only accepts the five
+allowlisted platform keys — an unrecognized key or malformed URL is
+silently dropped rather than stored.
 
 **Admin panels intentionally don't theme by tenant at all** — `/admin` and
 `/super-admin` always render with the default Fraunces/Inter pairing and
@@ -559,7 +576,10 @@ reasoning documented.
   `SettingsAdmin`'s form state) to add. A `branding jsonb` column (or a
   separate `business_branding` table) would scale better if more fields
   keep getting added; wasn't worth the migration/rewrite for what exists
-  today.
+  today. `social_links` (added after this review) followed the better
+  pattern — one jsonb column for an open-ended set of platforms, instead
+  of adding a ninth loose column — worth using that same approach for any
+  new *scalar* branding field too, not just collections like this one.
 - **No automated tests** — zero unit, integration, or E2E coverage
   anywhere. Reasonable for where this project is now; a real gap if it
   keeps growing or other people start contributing to it.

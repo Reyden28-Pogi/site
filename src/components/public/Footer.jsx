@@ -1,4 +1,5 @@
 import { useBusiness } from '../../lib/businessContext'
+import SocialIcons from './SocialIcons.jsx'
 
 export default function Footer() {
   const { business } = useBusiness()
@@ -28,6 +29,9 @@ export default function Footer() {
             © {new Date().getFullYear()} {business?.name || 'Your Business'}. All rights reserved.
           </div>
         </div>
+        {business?.social_links && Object.keys(business.social_links).length > 0 && (
+          <SocialIcons links={business.social_links} className="mt-8" />
+        )}
         <div className="mt-10 h-px w-full bg-tertiary/30" />
       </div>
     </footer>

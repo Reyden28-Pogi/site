@@ -42,6 +42,14 @@ function loadPreviewFonts() {
   document.head.appendChild(link)
 }
 
+const SOCIAL_PLATFORMS = [
+  { key: 'facebook', label: 'Facebook' },
+  { key: 'instagram', label: 'Instagram' },
+  { key: 'tiktok', label: 'TikTok' },
+  { key: 'twitter', label: 'Twitter / X' },
+  { key: 'youtube', label: 'YouTube' },
+]
+
 const emptyForm = {
   about_text: '',
   address: '',
@@ -53,6 +61,7 @@ const emptyForm = {
   body_font: 'Inter',
   logo_url: '',
   dark_mode: false,
+  social_links: { facebook: '', instagram: '', tiktok: '', twitter: '', youtube: '' },
 }
 
 export default function SettingsAdmin() {
@@ -78,7 +87,7 @@ export default function SettingsAdmin() {
     supabase
       .from('businesses')
       .select(
-        'about_text, address, contact_phone, theme_color, secondary_color, tertiary_color, heading_font, body_font, logo_url, dark_mode'
+        'about_text, address, contact_phone, theme_color, secondary_color, tertiary_color, heading_font, body_font, logo_url, dark_mode, social_links'
       )
       .eq('id', appUser.business_id)
       .single()
@@ -95,6 +104,7 @@ export default function SettingsAdmin() {
             body_font: data.body_font || emptyForm.body_font,
             logo_url: data.logo_url || '',
             dark_mode: data.dark_mode || false,
+            social_links: { ...emptyForm.social_links, ...(data.social_links || {}) },
           })
         }
         setLoading(false)
@@ -301,6 +311,30 @@ export default function SettingsAdmin() {
             className="h-5 w-5 shrink-0"
           />
         </label>
+
+        {/* ---------- Social links ---------- */}
+        <div>
+          <span className="mb-2 block text-sm font-medium text-ink/70">Social links</span>
+          <p className="mb-3 text-xs text-ink/50">
+            Shown as icons in your site's footer. Leave any blank to hide that one.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {SOCIAL_PLATFORMS.map(({ key, label }) => (
+              <label key={key} className="block">
+                <span className="mb-1 block text-xs font-medium text-ink/60">{label}</span>
+                <input
+                  type="url"
+                  value={form.social_links[key]}
+                  onChange={(e) =>
+                    setForm({ ...form, social_links: { ...form.social_links, [key]: e.target.value } })
+                  }
+                  placeholder={`https://${key}.com/yourbusiness`}
+                  className="input"
+                />
+              </label>
+            ))}
+          </div>
+        </div>
 
         {status === 'success' && <p className="text-sm text-brand">Saved!</p>}
         {status === 'error' && <p className="text-sm text-red-600">{errorMessage}</p>}

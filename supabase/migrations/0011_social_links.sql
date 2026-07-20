@@ -1,0 +1,21 @@
+-- =========================================================
+-- Social media links, stored as one JSONB object rather than a separate
+-- column per platform.
+--
+-- The code review after the branding features (secondary_color,
+-- tertiary_color, heading_font, body_font, logo_url, dark_mode, ...)
+-- flagged that pattern as not scaling well — 8 separate columns for one
+-- conceptual "branding" blob, each needing 4 touch points to add. Socials
+-- are an even clearer case for a single JSONB column: it's an open-ended
+-- set of platforms (more get added over time — Twitter/X, YouTube,
+-- Pinterest, LinkedIn...) rather than a fixed handful of scalar fields,
+-- so a new platform never needs a migration, just a new allowlisted key
+-- in update-business-profile.
+--
+-- Shape: { "facebook": "https://...", "instagram": "https://...", ... }
+-- Only keys present in a given business's object are ones they've set —
+-- absence, not an empty string, means "not set" (see Footer.jsx / the
+-- Settings form).
+-- =========================================================
+
+alter table businesses add column if not exists social_links jsonb not null default '{}'::jsonb;
